@@ -1,0 +1,61 @@
+{
+  "ignition": {
+    "version": "3.4.0"
+  },
+  "passwd": {
+    "users": [
+      {
+        "groups": [
+          "wheel",
+          "sudo"
+        ],
+        "name": "core",
+        "sshAuthorizedKeys": [
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFFEUgt52irn+QG6ibCaWnW632cSmCYa8hYGCZZEcTG2 gavin@gavdaly.com"
+        ]
+      }
+    ]
+  },
+  "storage": {
+    "files": [
+      {
+        "path": "/etc/ssh/sshd_config.d/99-custom.conf",
+        "contents": {
+          "compression": "",
+          "source": "data:,PermitRootLogin%20no%0APasswordAuthentication%20yes%0APubkeyAuthentication%20yes%0A"
+        },
+        "mode": 384
+      },
+      {
+        "group": {
+          "name": "core"
+        },
+        "path": "/home/core/.config/containers/registries.conf",
+        "user": {
+          "name": "core"
+        },
+        "contents": {
+          "compression": "gzip",
+          "source": "data:;base64,H4sIAAAAAAAC/4ouSk3PLC4pykwt1itOTSxKzojlQggp2CpEq6fkJ2enFull5qvrKKgXliZWQplQZZV6aakp+UWJBUX5WanJJXr5RenqsVxcyAZn5hWnJpcWpaIbjaYsKSc/ORtTDSAAAP//uosbBKMAAAA="
+        },
+        "mode": 420
+      }
+    ]
+  },
+  "systemd": {
+    "units": [
+      {
+        "enabled": true,
+        "name": "sshd.service"
+      },
+      {
+        "enabled": true,
+        "name": "rpm-ostreed-automatic.timer"
+      },
+      {
+        "enabled": true,
+        "name": "podman-auto-update.timer"
+      }
+    ]
+  }
+}
