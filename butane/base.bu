@@ -8,9 +8,6 @@ passwd:
       groups:
         - wheel
         - sudo
-kernel_arguments:
-  should_exist:
-    - mitigations=auto,nosmt
 systemd:
   units:
     - name: sshd.service
@@ -18,8 +15,6 @@ systemd:
     - name: rpm-ostreed-automatic.timer
       enabled: true
     - name: podman-auto-update.timer
-      enabled: true
-    - name: tailscaled.service
       enabled: true
 storage:
   files:
