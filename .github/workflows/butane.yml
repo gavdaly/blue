@@ -1,0 +1,113 @@
+name: Generate CoreOS Ignition Files
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "butane/**/*.bu"
+  pull_request:
+    branches: [main]
+    paths:
+      - "butane/**/*.bu"
+
+jobs:
+  generate-ignition:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install jq for JSON validation
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Generate Ignition Files with Butane
+        run: |
+          mkdir -p ignition
+          for butane_file in butane/*.bu; do
+            if [ -f "$butane_file" ]; then
+              filename=$(basename "$butane_file" .bu)
+              echo "Processing $butane_file..."
+
+              # Use Butane Docker image to generate Ignition file
+              docker run --rm -v "$PWD:/pwd" -w /pwd \
+                quay.io/coreos/butane:release \
+                --pretty --strict "$butane_file" > "ignition/${filename}.ign"
+
+              echo "Generated ignition/${filename}.ign"
+            fi
+          done
+
+      - name: Validate Ignition Files
+        run: |
+          echo "Validating generated Ignition files..."
+          validation_failed=false
+
+          for ign_file in ignition/*.ign; do
+            if [ -f "$ign_file" ]; then
+              echo "Validating $ign_file..."
+
+              # Check JSON syntax
+              if ! jq empty "$ign_file" 2>/dev/null; then
+                echo "❌ ERROR: $ign_file is not valid JSON"
+                validation_failed=true
+                continue
+              fi
+
+              # Check Ignition version
+              version=$(jq -r '.ignition.version // "missing"' "$ign_file")
+              if [[ "$version" == "missing" ]]; then
+                echo "❌ ERROR: $ign_file missing ignition.version"
+                validation_failed=true
+              elif [[ ! "$version" =~ ^3\.[0-9]+\.[0-9]+$ ]]; then
+                echo "⚠️  WARNING: $ign_file has unusual version: $version"
+              else
+                echo "✅ $ign_file has valid version: $version"
+              fi
+
+              # Validate with official ignition-validate tool
+              if docker run --rm -v "$PWD:/pwd" -w /pwd \
+                quay.io/coreos/ignition-validate:release \
+                "$ign_file" 2>/dev/null; then
+                echo "✅ $ign_file passed official validation"
+              else
+                echo "❌ ERROR: $ign_file failed official validation"
+                validation_failed=true
+              fi
+
+              # Check for common issues
+              if jq -e '.passwd.users[]? | select(.sshAuthorizedKeys | length == 0)' "$ign_file" >/dev/null; then
+                echo "⚠️  WARNING: $ign_file has users with no SSH keys"
+              fi
+
+              echo "---"
+            fi
+          done
+
+          if [ "$validation_failed" = true ]; then
+            echo "❌ Validation failed for one or more files"
+            exit 1
+          else
+            echo "✅ All Ignition files are valid!"
+          fi
+
+      - name: Upload Ignition Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ignition-files
+          path: ignition/*.ign
+          retention-days: 30
+
+      - name: Commit Generated Files (Optional)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          if [ -n "$(git status --porcelain ignition/)" ]; then
+            git add ignition/
+            git commit -m "Auto-generate Ignition files from Butane configs"
+            git push
+          else
+            echo "No changes to commit"
+          fi
