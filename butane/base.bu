@@ -13,6 +13,7 @@ kernel_arguments:
     - mitigations=auto,nosmt
 packages:
   - htop
+  - tailscale
   - zellij
   - git
   - curl
@@ -28,6 +29,8 @@ systemd:
     - name: rpm-ostreed-automatic.timer
       enabled: true
     - name: podman-auto-update.timer
+      enabled: true
+    - name: tailscaled.service
       enabled: true
 storage:
   files:
