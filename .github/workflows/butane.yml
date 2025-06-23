@@ -2,11 +2,9 @@ name: Generate CoreOS Ignition Files
 
 on:
   push:
-    branches: [main, develop]
     paths:
       - "butane/**/*.bu"
   pull_request:
-    branches: [main]
     paths:
       - "butane/**/*.bu"
 
