@@ -1,0 +1,43 @@
+variant: fcos
+version: 1.5.0
+passwd:
+  users:
+    - name: core
+      ssh_authorized_keys:
+        - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFFEUgt52irn+QG6ibCaWnW632cSmCYa8hYGCZZEcTG2 gavin@gavdaly.com
+      groups:
+        - wheel
+        - sudo
+systemd:
+  units:
+    - name: sshd.service
+      enabled: true
+    - name: rpm-ostreed-automatic.timer
+      enabled: true
+    - name: podman-auto-update.timer
+      enabled: true
+storage:
+  files:
+    - path: /etc/ssh/sshd_config.d/99-custom.conf
+      mode: 0600
+      contents:
+        inline: |
+          PermitRootLogin no
+          PasswordAuthentication no
+          PubkeyAuthentication yes
+    - path: /home/core/.config/containers/registries.conf
+      mode: 0644
+      user:
+        name: core
+      group:
+        name: core
+      contents:
+        inline: |
+          [registries.search]
+          registries = ['docker.io', 'quay.io', 'registry.fedoraproject.org']
+
+          [registries.insecure]
+          registries = []
+
+          [registries.block]
+          registries = []
