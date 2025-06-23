@@ -8,6 +8,19 @@ passwd:
       groups:
         - wheel
         - sudo
+kernel_arguments:
+  should_exist:
+    - mitigations=auto,nosmt
+packages:
+  - htop
+  - zellij
+  - git
+  - curl
+  - wget
+  - rsync
+  - tree
+  - ncdu
+  - iotop
 systemd:
   units:
     - name: sshd.service
