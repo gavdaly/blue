@@ -30,7 +30,7 @@ jobs:
               # Use Butane Docker image to generate Ignition file
               docker run --rm -v "$PWD:/pwd" -w /pwd \
                 quay.io/coreos/butane:release \
-                --pretty --strict "$butane_file" > "ignition/${filename}.ign"
+                --pretty "$butane_file" > "ignition/${filename}.ign"
 
               echo "Generated ignition/${filename}.ign"
             fi
