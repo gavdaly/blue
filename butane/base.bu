@@ -11,17 +11,6 @@ passwd:
 kernel_arguments:
   should_exist:
     - mitigations=auto,nosmt
-packages:
-  - htop
-  - tailscale
-  - zellij
-  - git
-  - curl
-  - wget
-  - rsync
-  - tree
-  - ncdu
-  - iotop
 systemd:
   units:
     - name: sshd.service
