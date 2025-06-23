@@ -23,7 +23,7 @@ storage:
       contents:
         inline: |
           PermitRootLogin no
-          PasswordAuthentication no
+          PasswordAuthentication yes
           PubkeyAuthentication yes
     - path: /home/core/.config/containers/registries.conf
       mode: 0644
